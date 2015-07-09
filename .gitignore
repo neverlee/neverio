@@ -1,0 +1,5 @@
+themes/*
+public
+*.swp
+node_modules
+.DS_Store
