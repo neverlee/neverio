@@ -2,7 +2,7 @@ title: Go编译器修改
 date: 2015-08-04 15:32:41
 tags: [Go,变量,包,警告]
 categories: 小笔记
-description: 将go语言的变量，包未使用错误改成警告（更新至1.5版本的go编译器）
+description: 将go语言的变量，包未使用错误改成警告（更新至1.5.1版本的go编译器）
 ---
 
 Go语言将variable declared but not used和package imported but not used设计成错误，正常使用无可厚非，但调试代码时会非常恼人。下面，就通过修改go源码将这两类错误改为警告。PS：不要害怕，因为编译go编译器只需要一两分钟
@@ -54,8 +54,8 @@ for(h=0; h<NHASH; h++) {
 
     PS：得益于go变态的编译速度，强烈建议从源码安装go。
 
-* golang1.5修改方法
-    解决variable declared but not used，通过修改go/src/cmd/compile/internal/gc/walk.go中的`func walk(fn *Node)`函数
+* golang1.5.1修改方法
+    解决variable declared but not used，通过修改go/src/cmd/compile/internal/gc/walk.go中的`func walk(fn *Node)`函数，其实就是把这里的Yyerror改成Warn。
 
     ``` go
 	for l := fn.Func.Dcl; l != nil; l = l.Next {
@@ -67,38 +67,33 @@ for(h=0; h<NHASH; h++) {
 				continue
 			}
 			lineno = defn.Left.Lineno
-			//修改此行为下面这行 Yyerror("%v declared and not used", l.N.Sym)
+			//修改此行为下面这行Yyerror("%v declared and not used", l.N.Sym)
 			Warn("%v declared and not used", l.N.Sym)
 			defn.Left.Used = true // suppress repeats
 		} else {
 			lineno = l.N.Lineno
-			//修改此行为下面这行 Yyerror("%v declared and not used", l.N.Sym)
+			//修改此行为下面这行Yyerror("%v declared and not used", l.N.Sym)
 			Warn("%v declared and not used", l.N.Sym)
 		}
 	}
     ```
 
-    解决package imported but not used，通过修改go/src/cmd/compile/internal/gc/lex.go中的`func mkpackage(pkgname string)`函数
+    解决package imported but not used，通过修改go/src/cmd/compile/internal/gc/lex.go中的`func pkgnotused(lineno int, path string, name string)`函数，也就是将这里的yyerrorl改成Warnl。
     ``` go
-    for _, s := range localpkg.Syms {
-        if s.Def == nil {
-            continue
-        }
-        if s.Def.Op == OPACK {
-            // throw away top-level package name leftover
-            // from previous file.
-            // leave s->block set to cause redeclaration
-            // errors if a conflicting top-level name is
-            // introduced by a different file.
-            if !s.Def.Used && nsyntaxerrors == 0 {
-                //修改此行为下面两行 pkgnotused(int(s.Def.Lineno), s.Def.Name.Pkg.Path, s.Name)
-                lineno = s.Def.Lineno
-                Warn("imported and not used: %q", s.Def.Name.Pkg.Path)
-
-            }
-            s.Def = nil
-            continue
-        }
+func pkgnotused(lineno int, path string, name string) {
+    // ...这里省略掉注释
+	elem := path
+	if i := strings.LastIndex(elem, "/"); i >= 0 {
+		elem = elem[i+1:]
+	}
+	if name == "" || elem == name {
+		//修改此行为下面一行yyerrorl(int(lineno), "imported and not used: %q", path)
+		Warnl(int(lineno), "imported and not used: %q", path)
+	} else {
+		//修改此行为下面一行yyerrorl(int(lineno), "imported and not used: %q as %s", path, name)
+		Warnl(int(lineno), "imported and not used: %q as %s", path, name)
+	}
+}
     ```
 
-    golang1.5编译需要golang1.4，设置好GOROOT_BOOTSTRAP环境变量为golang1.4所在目录，cd到golang1.5的源码（go/src）下运行sudo ./make.bash，稍等，搞定！
+    编译golang1.5编译需要另一个golang1.4或更高版本的来编译，一个简单的方法是下载一份golang1.5.1的二进制版本，解压出两份来，如分别命名gomy,go15，按上面的方法修改gomy里面的代码后，设置好GOROOT_BOOTSTRAP环境变量为go15这个目录的绝对路径，cd到gomy/src下运行./make.bash，稍等，搞定！之后就可以把gomy放到你喜欢的位置，设置好GOROOT，GOPATH等环境亦是就可以使用了。
