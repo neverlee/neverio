@@ -49,4 +49,4 @@ docker run -i -t -v /Volumes/hello:/root/hello --name test ubuntu
 来挂载，但重启boot2docker后软链接又没了，要解决这个，要自己制作boot2docker的镜像了。另外boot2docker up有一个参数可以设置共享文件夹，准备之后研究下，或许这个能更好地解决这个问题。
 
 
->>> 作者原创，转载请注明出处
+> 作者原创，转载请注明出处
