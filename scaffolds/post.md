@@ -1,6 +1,6 @@
 title: {{ title }}
 date: {{ date }}
-tags: [Nginx]
+tags: 
 categories: 小笔记
 description:
 ---
