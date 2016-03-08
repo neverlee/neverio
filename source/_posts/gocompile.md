@@ -97,3 +97,7 @@ func pkgnotused(lineno int, path string, name string) {
     ```
 
     编译golang1.5编译需要另一个golang1.4或更高版本的来编译，一个简单的方法是下载一份golang1.5.1的二进制版本，解压出两份来，如分别命名gomy,go15，按上面的方法修改gomy里面的代码后，设置好GOROOT_BOOTSTRAP环境变量为go15这个目录的绝对路径，cd到gomy/src下运行./make.bash，稍等，搞定！之后就可以把gomy放到你喜欢的位置，设置好GOROOT，GOPATH等环境亦是就可以使用了。
+
+
+
+> 作者原创，转载请注明出处
