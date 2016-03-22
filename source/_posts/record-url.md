@@ -6,3 +6,5 @@ description:
 ---
 
 [Mac OSX系统下通过ProxyChains-NG实现终端下的代理](http://huifeng.me/2015/08/23/ProxyChains-NG-4-OSX-Setting/)
+
+[Sharing Golang packages to C and Go](http://blog.ralch.com/tutorial/golang-sharing-libraries/)
